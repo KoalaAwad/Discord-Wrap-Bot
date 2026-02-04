@@ -158,17 +158,17 @@ export function registerMessageBatch(client: Client) {
           topMessageOverallId = topMessageId;
           topMessageOverallCount = topMessageCount;
           topMessageOverallChannelId = info?.channelId;
-
-          const link = topMessageOverallChannelId
-            ? `https://discord.com/channels/${message.guild?.id}/${topMessageOverallChannelId}/${topMessageOverallId}`
-            : topMessageOverallId;
-
-          if (!getSilentMode()) {
-            await message.channel.send(
-              `New top reacted message: ${link} with ${topMessageOverallCount} reactions!`,
-            );
-          }
         }
+      }
+
+      if (topMessageOverallId && !getSilentMode()) {
+        const link = topMessageOverallChannelId
+          ? `https://discord.com/channels/${message.guild?.id}/${topMessageOverallChannelId}/${topMessageOverallId}`
+          : topMessageOverallId;
+
+        await message.channel.send(
+          `Current top reacted message: ${link} with ${topMessageOverallCount} reactions!`,
+        );
       }
 
       reactionBatch.splice(0, reactionBatch.length);
