@@ -1,6 +1,6 @@
 import type { Message } from "discord.js";
 import { getSilentMode } from "../state";
-import { drainReactionSummary } from "./reactions";
+import { drainReactionSummary, getTopReactedMessage } from "./reactions";
 
 type BatchMessage = {
   userId: string;
@@ -9,9 +9,7 @@ type BatchMessage = {
 };
 
 const messageBatch: BatchMessage[] = [];
-let topMessageOverallId: string | undefined;
-let topMessageOverallCount = 0;
-let topMessageOverallChannelId: string | undefined;
+const totalMessageCounts = new Map<string, number>();
 
 export async function handleBatchMessage(message: Message) {
   if (message.author.bot || !message.guild) return;
@@ -29,6 +27,10 @@ export async function handleBatchMessage(message: Message) {
 
   for (const item of batch) {
     counts.set(item.userId, (counts.get(item.userId) ?? 0) + 1);
+    totalMessageCounts.set(
+      item.userId,
+      (totalMessageCounts.get(item.userId) ?? 0) + 1,
+    );
   }
 
   let topUserId: string | undefined;
@@ -69,23 +71,38 @@ export async function handleBatchMessage(message: Message) {
         `User <@${reactionSummary.topReceiverId}> received the most reactions (${reactionSummary.topReceiverCount}) this batch!`,
       );
     }
+  }
 
-    if (reactionSummary.topMessageId) {
-      if ((reactionSummary.topMessageCount ?? 0) > topMessageOverallCount) {
-        topMessageOverallId = reactionSummary.topMessageId;
-        topMessageOverallCount = reactionSummary.topMessageCount ?? 0;
-        topMessageOverallChannelId = reactionSummary.topMessageChannelId;
-      }
+  const topMessage = getTopReactedMessage();
+
+  if (
+    topMessage.messageId &&
+    !getSilentMode() &&
+    message.channel.isSendable()
+  ) {
+    const link = topMessage.channelId
+      ? `https://discord.com/channels/${message.guild.id}/${topMessage.channelId}/${topMessage.messageId}`
+      : topMessage.messageId;
+
+    await message.channel.send(
+      `Current top reacted message: ${link} with ${topMessage.reactionCount ?? 0} reactions!`,
+    );
+  }
+}
+
+export function getMessageTotals() {
+  let topUserId: string | undefined;
+  let topCount = 0;
+
+  for (const [userId, count] of totalMessageCounts) {
+    if (count > topCount) {
+      topUserId = userId;
+      topCount = count;
     }
   }
 
-  if (topMessageOverallId && !getSilentMode() && message.channel.isSendable()) {
-    const link = topMessageOverallChannelId
-      ? `https://discord.com/channels/${message.guild.id}/${topMessageOverallChannelId}/${topMessageOverallId}`
-      : topMessageOverallId;
-
-    await message.channel.send(
-      `Current top reacted message: ${link} with ${topMessageOverallCount} reactions!`,
-    );
-  }
+  return {
+    topUserId,
+    topCount: topCount || undefined,
+  };
 }

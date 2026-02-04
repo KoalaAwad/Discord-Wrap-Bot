@@ -17,10 +17,41 @@ type ReactionSummary = {
   topMessageChannelId?: string | undefined;
 };
 
+type ReactionTotals = {
+  topReactorId?: string | undefined;
+  topReactorCount?: number | undefined;
+  topReceiverId?: string | undefined;
+  topReceiverCount?: number | undefined;
+};
+
+type TopMessageTotals = {
+  messageId?: string | undefined;
+  channelId?: string | undefined;
+  reactionCount?: number | undefined;
+};
+
 const reactionBatch: ReactionRecord[] = [];
+const totalReactionsByUser = new Map<string, number>();
+const totalReactionsByReceiver = new Map<string, number>();
+const totalReactionsByMessage = new Map<string, number>();
+const messageChannelById = new Map<string, string>();
 
 export function recordReaction(record: ReactionRecord) {
   reactionBatch.push(record);
+
+  totalReactionsByUser.set(
+    record.userId,
+    (totalReactionsByUser.get(record.userId) ?? 0) + 1,
+  );
+  totalReactionsByReceiver.set(
+    record.messageAuthorId,
+    (totalReactionsByReceiver.get(record.messageAuthorId) ?? 0) + 1,
+  );
+  totalReactionsByMessage.set(
+    record.messageId,
+    (totalReactionsByMessage.get(record.messageId) ?? 0) + 1,
+  );
+  messageChannelById.set(record.messageId, record.messageChannelId);
 }
 
 export function drainReactionSummary(): ReactionSummary | null {
@@ -118,5 +149,52 @@ export function drainReactionSummary(): ReactionSummary | null {
     topMessageId,
     topMessageCount: topMessageCount || undefined,
     topMessageChannelId,
+  };
+}
+
+export function getReactionTotals(): ReactionTotals {
+  let topReactorId: string | undefined;
+  let topReactorCount = 0;
+
+  for (const [userId, count] of totalReactionsByUser) {
+    if (count > topReactorCount) {
+      topReactorId = userId;
+      topReactorCount = count;
+    }
+  }
+
+  let topReceiverId: string | undefined;
+  let topReceiverCount = 0;
+
+  for (const [userId, count] of totalReactionsByReceiver) {
+    if (count > topReceiverCount) {
+      topReceiverId = userId;
+      topReceiverCount = count;
+    }
+  }
+
+  return {
+    topReactorId,
+    topReactorCount: topReactorCount || undefined,
+    topReceiverId,
+    topReceiverCount: topReceiverCount || undefined,
+  };
+}
+
+export function getTopReactedMessage(): TopMessageTotals {
+  let messageId: string | undefined;
+  let reactionCount = 0;
+
+  for (const [id, count] of totalReactionsByMessage) {
+    if (count > reactionCount) {
+      messageId = id;
+      reactionCount = count;
+    }
+  }
+
+  return {
+    messageId,
+    channelId: messageId ? messageChannelById.get(messageId) : undefined,
+    reactionCount: reactionCount || undefined,
   };
 }
