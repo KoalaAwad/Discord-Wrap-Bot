@@ -17,5 +17,5 @@
     "exactOptionalPropertyTypes": true,
     "skipLibCheck": true
   },
-  "include": ["src/index.ts", "src/config.ts", "src/commands/**/*.ts"]
+  "include": ["src/**/*.ts"]
 }

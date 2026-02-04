@@ -11,7 +11,8 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { config } from "./config";
-import { registerMessageBatch } from "./handlers/message";
+import { registerMessageHandler } from "./handlers/message";
+import { registerReactionHandler } from "./handlers/reaction";
 
 interface Command {
   data: SlashCommandBuilder;
@@ -91,6 +92,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
   }
 });
 
-registerMessageBatch(client);
+registerMessageHandler(client);
+registerReactionHandler(client);
 
 void client.login(config.DISCORD_TOKEN);
