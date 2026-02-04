@@ -7,16 +7,26 @@ import {
   Events,
   GatewayIntentBits,
   Interaction,
+  Partials,
   SlashCommandBuilder,
 } from "discord.js";
 import { config } from "./config";
+import { registerMessageBatch } from "./handlers/message";
 
 interface Command {
   data: SlashCommandBuilder;
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 }
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMessageReactions,
+  ],
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+});
 const commands = new Collection<string, Command>();
 
 client.once(Events.ClientReady, (readyClient) => {
@@ -32,7 +42,11 @@ for (const folder of commandFolders) {
   const commandsPath = path.join(foldersPath, folder);
   const commandFiles = fs
     .readdirSync(commandsPath)
-    .filter((file) => (file.endsWith(".js") || file.endsWith(".ts")) && !file.endsWith(".d.ts"));
+    .filter(
+      (file) =>
+        (file.endsWith(".js") || file.endsWith(".ts")) &&
+        !file.endsWith(".d.ts"),
+    );
 
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
@@ -76,5 +90,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     }
   }
 });
+
+registerMessageBatch(client);
 
 void client.login(config.DISCORD_TOKEN);
