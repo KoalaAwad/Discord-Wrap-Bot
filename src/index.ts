@@ -39,7 +39,7 @@ for (const folder of commandFolders) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const command = require(filePath) as Command;
 
-    if (command?.data && command?.execute) {
+    if (command && "data" in command && "execute" in command) {
       commands.set(command.data.name, command);
     } else {
       console.log(
