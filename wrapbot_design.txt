@@ -1,0 +1,80 @@
+discord wrapped - wrap bot
+
+tracks user activity and provides milestone and yearly analytics
+
+
+functionality are:
+
+
+- milestone, not promotable
+	> user based: "User {username} has sent their 100 messages this week!"
+	> session based: "the voice chat {voice chat} has been ongoing for 12 hours!"
+
+
+- year metrics
+	> user based: "User {username} has ...
+						 sent the most messages
+						 reacted the most
+						 spent the most time in voice chat
+						 least active user + duration of inactivity
+	> server based: # messages were sent on the {most popular channel} 
+
+	> hall of fame
+						 post with the most individual reactions
+						 user who's messages received the most reactions
+						 most popular voice chat + total number of hours spent 
+
+
+- admin configuration:
+	server owner can:
+						 configure the bot to exclude set users and voice channels
+						 
+
+all data that is collected will be stored: 
+in memory: RxDB plugin in memory storage
+later on implement persisting with a mongoDB
+
+
+
+
+user interaction:
+
+
+/init: admin runs /innit, to set or update rules and configuration; enable year wrap tracking, enable user stat tracking, enable milestones, fill out exclusion / inclusion list using discord user IDs, enable role based permission to /wrap
+
+
+/wrap (me/server/@username): users can see the /wrap for the server's yearly stats but only on the wrap week, otherwise give time left to wrap day 1
+
+/exclude & /include: users can /exclude or include which prompts a yes/no prompt whether a user wishes to include or exclude themselves from the tracking
+
+/start & /stop: stop or start all tracking
+
+
+
+the data forms:
+
+Configuration & Control Layer: authorizations and what data is tracked
+Activity Data: User IDs, messages, reactions, VC session lengths
+Aggregated Stats: generated emtrics ei the yearly wrap, milestones, hall of fame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
