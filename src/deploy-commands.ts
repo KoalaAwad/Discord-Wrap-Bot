@@ -4,11 +4,11 @@ import { REST, Routes, SlashCommandBuilder } from "discord.js";
 import { config } from "./config";
 
 interface CommandModule {
-  data: SlashCommandBuilder;
+  data: Pick<SlashCommandBuilder, "name" | "toJSON">;
 }
 
-function loadCommands(): SlashCommandBuilder[] {
-  const commands: SlashCommandBuilder[] = [];
+function loadCommands(): CommandModule["data"][] {
+  const commands: CommandModule["data"][] = [];
   const foldersPath = path.join(__dirname, "commands");
   const commandFolders = fs.existsSync(foldersPath)
     ? fs.readdirSync(foldersPath)

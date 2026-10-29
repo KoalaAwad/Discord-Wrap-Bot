@@ -7,15 +7,17 @@ import {
   Events,
   GatewayIntentBits,
   Interaction,
+  MessageFlags,
   Partials,
   SlashCommandBuilder,
 } from "discord.js";
 import { config } from "./config";
+import { registerGuildHandler } from "./handlers/guild";
 import { registerMessageHandler } from "./handlers/message";
 import { registerReactionHandler } from "./handlers/reaction";
 
 interface Command {
-  data: SlashCommandBuilder;
+  data: Pick<SlashCommandBuilder, "name" | "toJSON">;
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 }
 
@@ -23,7 +25,6 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMessageReactions,
   ],
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
@@ -70,7 +71,10 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
   const command = commands.get(interaction.commandName);
 
   if (!command) {
-    await interaction.reply({ content: "Command not found.", ephemeral: true });
+    await interaction.reply({
+      content: "Command not found.",
+      flags: MessageFlags.Ephemeral,
+    });
     return;
   }
 
@@ -81,8 +85,8 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
 
     const reply = {
       content: "There was an error while executing this command.",
-      ephemeral: true,
-    };
+      flags: MessageFlags.Ephemeral,
+    } as const;
 
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp(reply);
@@ -92,6 +96,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
   }
 });
 
+registerGuildHandler(client);
 registerMessageHandler(client);
 registerReactionHandler(client);
 
