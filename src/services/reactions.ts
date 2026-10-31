@@ -19,6 +19,30 @@ const insertStmt = db.prepare<
    VALUES (?, ?, ?, ?, ?, ?, ?)`,
 );
 
+const removeStmt = db.prepare<[string, string, string]>(
+  "DELETE FROM reactions WHERE message_id = ? AND user_id = ? AND emoji = ?",
+);
+const removeEmojiStmt = db.prepare<[string, string]>(
+  "DELETE FROM reactions WHERE message_id = ? AND emoji = ?",
+);
+const removeAllStmt = db.prepare<[string]>(
+  "DELETE FROM reactions WHERE message_id = ?",
+);
+
+export function removeReaction(messageId: string, userId: string, emoji: string) {
+  removeStmt.run(messageId, userId, emoji);
+}
+
+/** A moderator cleared one emoji from a message. */
+export function removeEmojiReactions(messageId: string, emoji: string) {
+  removeEmojiStmt.run(messageId, emoji);
+}
+
+/** A moderator cleared every reaction, or the message was deleted. */
+export function removeAllReactions(messageId: string) {
+  removeAllStmt.run(messageId);
+}
+
 export function recordReaction(record: ReactionRecord) {
   insertStmt.run(
     record.messageId,

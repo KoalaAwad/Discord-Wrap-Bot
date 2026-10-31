@@ -42,6 +42,26 @@ const migrations: string[] = [
   );
   CREATE INDEX reactions_guild_time ON reactions (guild_id, created_at);
   `,
+  `
+  -- left_at is NULL while the member is still in the channel.
+  CREATE TABLE voice_sessions (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    guild_id   TEXT NOT NULL,
+    channel_id TEXT NOT NULL,
+    user_id    TEXT NOT NULL,
+    joined_at  INTEGER NOT NULL,
+    left_at    INTEGER
+  );
+  CREATE INDEX voice_sessions_guild_time ON voice_sessions (guild_id, joined_at);
+  CREATE UNIQUE INDEX voice_sessions_one_open
+    ON voice_sessions (guild_id, user_id) WHERE left_at IS NULL;
+
+  -- Small key/value store for bot state, e.g. the last heartbeat.
+  CREATE TABLE bot_meta (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
+  `,
 ];
 
 fs.mkdirSync(path.dirname(path.resolve(config.DB_PATH)), { recursive: true });

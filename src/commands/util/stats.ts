@@ -42,6 +42,16 @@ function ranking(rows: Ranked[], format: (id: string) => string) {
   return rows.map((row) => `${format(row.id)} (${row.n})`).join(", ");
 }
 
+function duration(ms: number) {
+  const minutes = Math.floor(ms / 60_000);
+  const hours = Math.floor(minutes / 60);
+  if (hours === 0) return `${minutes}m`;
+  return `${hours}h ${minutes % 60}m`;
+}
+
+/** Discord renders <t:…> in each viewer's own timezone. */
+const timestamp = (ms: number) => `<t:${Math.floor(ms / 1000)}:f>`;
+
 const user = (id: string) => `<@${id}>`;
 const channel = (id: string) => `<#${id}>`;
 const emoji = (id: string) => id;
@@ -66,10 +76,16 @@ export const execute = async (
       `Reactions received: ${stats.reactionsReceived}`,
       `Favourite emoji: ${stats.favouriteEmoji ? `${stats.favouriteEmoji.id} (${stats.favouriteEmoji.n})` : "none yet"}`,
       `Most active in: ${stats.favouriteChannel ? channel(stats.favouriteChannel.id) : "none yet"}`,
+      `Voice time: ${duration(stats.voiceMs)}`,
     ];
   } else {
     const stats = getServerStats(guildId, period);
     const top = stats.topMessage;
+    const call = stats.longestCall;
+    const peak = stats.peakVoice;
+    const voiceTop = stats.topVoice.length
+      ? stats.topVoice.map((row) => `${user(row.id)} (${duration(row.ms)})`).join(", ")
+      : "none yet";
     lines = [
       `**Server stats — ${periodLabels[period]}**`,
       `Top senders: ${ranking(stats.topSenders, user)}`,
@@ -78,6 +94,9 @@ export const execute = async (
       `Most reacted to: ${ranking(stats.topReceivers, user)}`,
       `Top emoji: ${ranking(stats.topEmoji, emoji)}`,
       `Most reacted message: ${top ? `https://discord.com/channels/${guildId}/${top.channel_id}/${top.message_id} (${top.n} people)` : "none yet"}`,
+      `Most time in voice: ${voiceTop}`,
+      `Longest call (2+ people): ${call ? `${channel(call.channelId)}, ${duration(call.end - call.start)}${call.ongoing ? " and still going" : ""}, started ${timestamp(call.start)}` : "none yet"}`,
+      `Busiest voice moment: ${peak && peak.count >= 2 ? `${peak.count} people in ${channel(peak.channelId)} on ${timestamp(peak.at)}` : "none yet"}`,
     ];
   }
 

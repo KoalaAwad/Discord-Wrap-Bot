@@ -1,5 +1,5 @@
 import { Events, type Client } from "discord.js";
-import { recordMessage } from "../services/messages";
+import { deleteMessages, recordMessage } from "../services/messages";
 import {
   isChannelWhitelisted,
   isMemberWhitelisted,
@@ -27,5 +27,13 @@ export function registerMessageHandler(client: Client) {
       authorId: message.author.id,
       createdAt: message.createdTimestamp,
     });
+  });
+
+  client.on(Events.MessageDelete, (message) => {
+    deleteMessages([message.id]);
+  });
+
+  client.on(Events.MessageBulkDelete, (messages) => {
+    deleteMessages([...messages.keys()]);
   });
 }

@@ -15,6 +15,7 @@ import { config } from "./config";
 import { registerGuildHandler } from "./handlers/guild";
 import { registerMessageHandler } from "./handlers/message";
 import { registerReactionHandler } from "./handlers/reaction";
+import { registerVoiceHandler } from "./handlers/voice";
 
 interface Command {
   data: Pick<SlashCommandBuilder, "name" | "toJSON">;
@@ -26,6 +27,7 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildVoiceStates,
   ],
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
@@ -99,5 +101,6 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
 registerGuildHandler(client);
 registerMessageHandler(client);
 registerReactionHandler(client);
+registerVoiceHandler(client);
 
 void client.login(config.DISCORD_TOKEN);

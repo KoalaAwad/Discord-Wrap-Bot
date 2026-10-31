@@ -1,5 +1,10 @@
 import { Events, type Client } from "discord.js";
-import { recordReaction } from "../services/reactions";
+import {
+  recordReaction,
+  removeAllReactions,
+  removeEmojiReactions,
+  removeReaction,
+} from "../services/reactions";
 import {
   isChannelWhitelisted,
   isMemberWhitelisted,
@@ -45,5 +50,19 @@ export function registerReactionHandler(client: Client) {
       messageAuthorId: authorAllowed ? message.author.id : null,
       createdAt: Date.now(),
     });
+  });
+
+  // Removals need no fetching or whitelist check: deleting a row that was
+  // never stored is a no-op.
+  client.on(Events.MessageReactionRemove, (reaction, user) => {
+    removeReaction(reaction.message.id, user.id, reaction.emoji.toString());
+  });
+
+  client.on(Events.MessageReactionRemoveEmoji, (reaction) => {
+    removeEmojiReactions(reaction.message.id, reaction.emoji.toString());
+  });
+
+  client.on(Events.MessageReactionRemoveAll, (message) => {
+    removeAllReactions(message.id);
   });
 }
