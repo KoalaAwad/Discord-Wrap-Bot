@@ -7,6 +7,7 @@ import {
   type SlashCommandSubcommandBuilder,
 } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
+import { resyncVoice } from "../../handlers/voice";
 import {
   addToWhitelist,
   listWhitelist,
@@ -119,4 +120,6 @@ export const execute = async (
     flags: MessageFlags.Ephemeral,
     allowedMentions: { parse: [] },
   });
+  // People already in a call are picked up or dropped right away.
+  if (interaction.guild) await resyncVoice(interaction.guild);
 };

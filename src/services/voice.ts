@@ -19,6 +19,20 @@ const setHeartbeatStmt = db.prepare<[string]>(
    ON CONFLICT (key) DO UPDATE SET value = excluded.value`,
 );
 
+const openSessionsStmt = db.prepare<
+  [string],
+  { user_id: string; channel_id: string }
+>(
+  "SELECT user_id, channel_id FROM voice_sessions WHERE guild_id = ? AND left_at IS NULL",
+);
+
+/** Maps each member with an open session to the channel they're in. */
+export function getOpenSessions(guildId: string) {
+  return new Map(
+    openSessionsStmt.all(guildId).map((row) => [row.user_id, row.channel_id]),
+  );
+}
+
 export function endVoiceSession(guildId: string, userId: string, at: number) {
   closeStmt.run(at, guildId, userId);
 }

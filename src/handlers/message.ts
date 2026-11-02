@@ -1,9 +1,7 @@
 import { Events, type Client } from "discord.js";
 import { deleteMessages, recordMessage } from "../services/messages";
-import {
-  isChannelWhitelisted,
-  isMemberWhitelisted,
-} from "../services/whitelist";
+import { canTrack } from "../services/tracking";
+import { isChannelWhitelisted } from "../services/whitelist";
 
 let isRegistered = false;
 
@@ -13,12 +11,13 @@ export function registerMessageHandler(client: Client) {
 
   client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot || !message.inGuild()) return;
+    // Cheap check first so untracked channels never trigger a member fetch.
     if (!isChannelWhitelisted(message.guildId, message.channel)) return;
 
     const member =
       message.member ??
       (await message.guild.members.fetch(message.author.id).catch(() => null));
-    if (!member || !isMemberWhitelisted(message.guildId, member)) return;
+    if (!member || !canTrack(message.guildId, message.channel, member)) return;
 
     recordMessage({
       messageId: message.id,

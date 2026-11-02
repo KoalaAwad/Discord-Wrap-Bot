@@ -47,9 +47,11 @@ const topEmojiStmt = db.prepare<[...Range, number], Ranked>(
    GROUP BY emoji ORDER BY n DESC LIMIT ?`,
 );
 // "Most reacted" counts distinct people, so one person spamming emoji doesn't win.
+// Messages by authors who aren't tracked (not whitelisted, or opted out) are
+// skipped so the link never points at them.
 const topMessageStmt = db.prepare<Range, TopMessage>(
   `SELECT message_id, channel_id, COUNT(DISTINCT user_id) AS n FROM reactions
-   WHERE guild_id = ? AND created_at >= ?
+   WHERE guild_id = ? AND created_at >= ? AND message_author_id IS NOT NULL
    GROUP BY message_id ORDER BY n DESC, COUNT(*) DESC LIMIT 1`,
 );
 

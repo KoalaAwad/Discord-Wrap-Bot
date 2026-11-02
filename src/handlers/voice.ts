@@ -1,14 +1,12 @@
-import { Events, type Client, type VoiceState } from "discord.js";
+import { Events, type Client, type Guild, type VoiceState } from "discord.js";
+import { canTrack } from "../services/tracking";
 import {
   closeStaleSessions,
   endVoiceSession,
+  getOpenSessions,
   startVoiceSession,
   writeHeartbeat,
 } from "../services/voice";
-import {
-  isChannelWhitelisted,
-  isMemberWhitelisted,
-} from "../services/whitelist";
 
 const HEARTBEAT_MS = 60_000;
 
@@ -17,13 +15,41 @@ let isRegistered = false;
 async function isTrackable(state: VoiceState) {
   const channel = state.channel;
   if (!channel || channel.id === state.guild.afkChannelId) return false;
-  if (!isChannelWhitelisted(state.guild.id, channel)) return false;
 
   const member =
     state.member ??
     (await state.guild.members.fetch(state.id).catch(() => null));
-  if (!member || member.user.bot) return false;
-  return isMemberWhitelisted(state.guild.id, member);
+  return member !== null && canTrack(state.guild.id, channel, member);
+}
+
+/**
+ * Makes stored sessions match who is in voice right now and whether they may
+ * be tracked. Call after anything that changes the rules (whitelist, opt-out,
+ * pause) so people already in a call are picked up or dropped immediately.
+ * Sessions that are already right are left alone, so calls aren't split.
+ */
+export async function resyncVoice(guild: Guild, now = Date.now()) {
+  const open = getOpenSessions(guild.id);
+  const seen = new Set<string>();
+
+  for (const state of guild.voiceStates.cache.values()) {
+    if (!state.channelId) continue;
+    seen.add(state.id);
+
+    const trackable = await isTrackable(state);
+    const current = open.get(state.id);
+
+    if (trackable && current !== state.channelId) {
+      startVoiceSession(guild.id, state.channelId, state.id, now);
+    } else if (!trackable && current !== undefined) {
+      endVoiceSession(guild.id, state.id, now);
+    }
+  }
+
+  // Open sessions for people who are no longer in any voice channel.
+  for (const userId of open.keys()) {
+    if (!seen.has(userId)) endVoiceSession(guild.id, userId, now);
+  }
 }
 
 export function registerVoiceHandler(client: Client) {
@@ -34,13 +60,8 @@ export function registerVoiceHandler(client: Client) {
     closeStaleSessions();
 
     // Anyone already in a call when the bot starts gets a session from now.
-    const now = Date.now();
     for (const guild of readyClient.guilds.cache.values()) {
-      for (const state of guild.voiceStates.cache.values()) {
-        if (await isTrackable(state)) {
-          startVoiceSession(guild.id, state.channelId!, state.id, now);
-        }
-      }
+      if (guild.available) await resyncVoice(guild);
     }
 
     writeHeartbeat();

@@ -62,6 +62,17 @@ const migrations: string[] = [
     value TEXT NOT NULL
   );
   `,
+  `
+  -- A member's opt-out beats any whitelist entry an admin adds.
+  CREATE TABLE opt_outs (
+    guild_id     TEXT NOT NULL,
+    user_id      TEXT NOT NULL,
+    opted_out_at INTEGER NOT NULL,
+    PRIMARY KEY (guild_id, user_id)
+  );
+
+  ALTER TABLE guild_settings ADD COLUMN paused INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 fs.mkdirSync(path.dirname(path.resolve(config.DB_PATH)), { recursive: true });

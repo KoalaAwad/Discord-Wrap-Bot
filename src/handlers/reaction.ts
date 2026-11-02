@@ -5,10 +5,8 @@ import {
   removeEmojiReactions,
   removeReaction,
 } from "../services/reactions";
-import {
-  isChannelWhitelisted,
-  isMemberWhitelisted,
-} from "../services/whitelist";
+import { canTrack, canTrackMember } from "../services/tracking";
+import { isChannelWhitelisted } from "../services/whitelist";
 
 let isRegistered = false;
 
@@ -32,14 +30,16 @@ export function registerReactionHandler(client: Client) {
 
     const members = message.guild.members;
     const reactor = await members.fetch(user.id).catch(() => null);
-    if (!reactor || !isMemberWhitelisted(message.guildId, reactor)) return;
+    if (!reactor || !canTrack(message.guildId, message.channel, reactor)) {
+      return;
+    }
 
-    // Only credit the author as a receiver if they're whitelisted too.
+    // Only credit the author as a receiver if they can be tracked too.
     const author = message.author.bot
       ? null
       : await members.fetch(message.author.id).catch(() => null);
     const authorAllowed =
-      author !== null && isMemberWhitelisted(message.guildId, author);
+      author !== null && canTrackMember(message.guildId, author);
 
     recordReaction({
       messageId: message.id,
