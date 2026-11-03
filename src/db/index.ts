@@ -73,6 +73,34 @@ const migrations: string[] = [
 
   ALTER TABLE guild_settings ADD COLUMN paused INTEGER NOT NULL DEFAULT 0;
   `,
+  `
+  -- Where the server wrap is posted when wrap week opens, and the last year
+  -- it was posted for, so it goes out once per year.
+  ALTER TABLE guild_settings ADD COLUMN wrap_channel_id TEXT;
+  ALTER TABLE guild_settings ADD COLUMN wrap_posted_year INTEGER;
+
+  -- Per-person lookups over a whole year.
+  CREATE INDEX messages_guild_author ON messages (guild_id, author_id, created_at);
+  CREATE INDEX reactions_guild_receiver ON reactions (guild_id, message_author_id);
+  CREATE INDEX voice_sessions_guild_user ON voice_sessions (guild_id, user_id);
+  `,
+  `
+  -- Members now opt themselves in; admins only whitelist channels. Activity
+  -- stored under the old admin-picked member whitelist had no consent from
+  -- the member, so it's dropped.
+  CREATE TABLE opt_ins (
+    guild_id    TEXT NOT NULL,
+    user_id     TEXT NOT NULL,
+    opted_in_at INTEGER NOT NULL,
+    PRIMARY KEY (guild_id, user_id)
+  );
+
+  DELETE FROM whitelist WHERE kind <> 'channel';
+  DELETE FROM messages;
+  DELETE FROM reactions;
+  DELETE FROM voice_sessions;
+  DROP TABLE opt_outs;
+  `,
 ];
 
 fs.mkdirSync(path.dirname(path.resolve(config.DB_PATH)), { recursive: true });

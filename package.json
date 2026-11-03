@@ -16,6 +16,7 @@
     "deploy:build": "node dist/deploy-commands.js"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^1.1.0",
     "better-sqlite3": "^12.11.1",
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.3"

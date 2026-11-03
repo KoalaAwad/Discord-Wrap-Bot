@@ -6,7 +6,7 @@ type ReactionRecord = {
   emoji: string;
   guildId: string;
   channelId: string;
-  /** null when the message author isn't whitelisted. */
+  /** null when the message author isn't opted in. */
   messageAuthorId: string | null;
   createdAt: number;
 };

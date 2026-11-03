@@ -54,7 +54,7 @@ export const execute = async (
     const user = interaction.options.getUser("user", true);
     const press = await confirm(
       interaction,
-      `Delete all stored messages, reactions and voice time for <@${user.id}>? This can't be undone. They'll still be tracked from now on if whitelisted; they can \`/optout\` to stop that.`,
+      `Delete all stored messages, reactions and voice time for <@${user.id}>? This can't be undone. If they're opted in, new activity keeps being tracked; they can \`/optout\` to stop that.`,
       "Delete their data",
     );
     if (!press) return;

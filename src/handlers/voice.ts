@@ -24,7 +24,7 @@ async function isTrackable(state: VoiceState) {
 
 /**
  * Makes stored sessions match who is in voice right now and whether they may
- * be tracked. Call after anything that changes the rules (whitelist, opt-out,
+ * be tracked. Call after anything that changes the rules (whitelist, opt-in/out,
  * pause) so people already in a call are picked up or dropped immediately.
  * Sessions that are already right are left alone, so calls aren't split.
  */

@@ -16,7 +16,7 @@ export function registerGuildHandler(client: Client) {
 
     await channel
       .send(
-        "Thanks for adding me! I don't track anything yet. An admin can use `/whitelist add` to pick the channels and members (or roles) I'm allowed to track.",
+        "Thanks for adding me! I don't track anything yet. An admin picks the channels with `/whitelist add`, and each member who wants to be included runs `/optin` themselves.",
       )
       .catch(() => undefined);
   });

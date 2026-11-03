@@ -1,14 +1,13 @@
 import type { GuildBasedChannel, GuildMember } from "discord.js";
-import { isOptedOut } from "./privacy";
+import { isOptedIn } from "./privacy";
 import { isPaused } from "./settings";
-import { isChannelWhitelisted, isMemberWhitelisted } from "./whitelist";
+import { isChannelWhitelisted } from "./whitelist";
 
 /** Whether this member's activity may be stored at all, in any channel. */
 export function canTrackMember(guildId: string, member: GuildMember) {
   if (member.user.bot) return false;
   if (isPaused(guildId)) return false;
-  if (isOptedOut(guildId, member.id)) return false;
-  return isMemberWhitelisted(guildId, member);
+  return isOptedIn(guildId, member.id);
 }
 
 /** The one check every handler goes through before storing anything. */

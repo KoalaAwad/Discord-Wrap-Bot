@@ -6,7 +6,7 @@ import {
 } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 import { resyncVoice } from "../../handlers/voice";
-import { countOptOuts } from "../../services/privacy";
+import { countOptIns } from "../../services/privacy";
 import { isPaused, setPaused } from "../../services/settings";
 import { listWhitelist } from "../../services/whitelist";
 
@@ -33,13 +33,12 @@ export const execute = async (
   const subcommand = interaction.options.getSubcommand();
 
   if (subcommand === "status") {
-    const rows = listWhitelist(guildId);
-    const count = (kind: string) => rows.filter((r) => r.kind === kind).length;
+    const channels = listWhitelist(guildId).length;
     await interaction.reply({
       content: [
         `Tracking is **${isPaused(guildId) ? "paused" : "on"}**.`,
-        `Whitelisted: ${count("channel")} channels/categories, ${count("user")} users, ${count("role")} roles.`,
-        `Members opted out: ${countOptOuts(guildId)}.`,
+        `Whitelisted channels/categories: ${channels}.`,
+        `Members opted in: ${countOptIns(guildId)}.`,
       ].join("\n"),
       flags: MessageFlags.Ephemeral,
     });

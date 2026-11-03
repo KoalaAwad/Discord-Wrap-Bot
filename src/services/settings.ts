@@ -17,6 +17,42 @@ const setPausedStmt = db.prepare<[number, string]>(
   "UPDATE guild_settings SET paused = ? WHERE guild_id = ?",
 );
 
+const getWrapChannelStmt = db.prepare<[string], { wrap_channel_id: string | null }>(
+  "SELECT wrap_channel_id FROM guild_settings WHERE guild_id = ?",
+);
+const setWrapChannelStmt = db.prepare<[string | null, string]>(
+  "UPDATE guild_settings SET wrap_channel_id = ? WHERE guild_id = ?",
+);
+const pendingWrapPostsStmt = db.prepare<
+  [number],
+  { guild_id: string; wrap_channel_id: string }
+>(
+  `SELECT guild_id, wrap_channel_id FROM guild_settings
+   WHERE wrap_channel_id IS NOT NULL AND silent = 0
+     AND (wrap_posted_year IS NULL OR wrap_posted_year < ?)`,
+);
+const markWrapPostedStmt = db.prepare<[number, string]>(
+  "UPDATE guild_settings SET wrap_posted_year = ? WHERE guild_id = ?",
+);
+
+export function getWrapChannel(guildId: string) {
+  return getWrapChannelStmt.get(guildId)?.wrap_channel_id ?? null;
+}
+
+export function setWrapChannel(guildId: string, channelId: string | null) {
+  ensureGuild(guildId);
+  setWrapChannelStmt.run(channelId, guildId);
+}
+
+/** Servers with an auto-post channel that haven't had `year`'s wrap posted. */
+export function pendingWrapPosts(year: number) {
+  return pendingWrapPostsStmt.all(year);
+}
+
+export function markWrapPosted(guildId: string, year: number) {
+  markWrapPostedStmt.run(year, guildId);
+}
+
 export function isPaused(guildId: string) {
   return getPausedStmt.get(guildId)?.paused === 1;
 }

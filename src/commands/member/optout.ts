@@ -5,7 +5,7 @@ import {
 } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 import { resyncVoice } from "../../handlers/voice";
-import { isOptedOut, optOut } from "../../services/privacy";
+import { isOptedIn, optOut } from "../../services/privacy";
 import { confirm } from "../../util/confirm";
 
 export const data = new SlashCommandBuilder()
@@ -19,9 +19,9 @@ export const execute = async (
   if (!interaction.inGuild()) return;
   const guildId = interaction.guildId;
 
-  if (isOptedOut(guildId, interaction.user.id)) {
+  if (!isOptedIn(guildId, interaction.user.id)) {
     await interaction.reply({
-      content: "You're already opted out. Use `/optin` if you change your mind.",
+      content: "You're not opted in, so nothing about you is tracked here. Use `/optin` if you want to join.",
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -32,7 +32,7 @@ export const execute = async (
     [
       "**Opt out of tracking in this server?**",
       "- Your messages, reactions and voice time are deleted now.",
-      "- Nothing about you is tracked from now on, even if an admin whitelists you.",
+      "- Nothing about you is tracked from now on.",
       "- Reactions others gave your messages stay theirs but no longer count for you.",
       "",
       "You can `/optin` later, but deleted history can't be restored.",
@@ -43,7 +43,7 @@ export const execute = async (
 
   optOut(guildId, interaction.user.id);
   await press.update({
-    content: "Done. You're opted out and your data in this server is deleted.",
+    content: "Done. You're no longer tracked and your data in this server is deleted.",
     components: [],
   });
   if (interaction.guild) await resyncVoice(interaction.guild);

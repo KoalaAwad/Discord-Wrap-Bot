@@ -4,7 +4,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
-import { isOptedOut } from "../../services/privacy";
+import { isOptedIn } from "../../services/privacy";
 import { getServerStats, getUserStats, type Period } from "../../services/stats";
 
 const periodLabels: Record<Period, string> = {
@@ -68,8 +68,8 @@ export const execute = async (
 
   let lines: string[];
 
-  if (target && isOptedOut(guildId, target.id)) {
-    lines = [`${user(target.id)} has opted out of tracking in this server.`];
+  if (target && !isOptedIn(guildId, target.id)) {
+    lines = [`${user(target.id)} hasn't opted in to tracking in this server.`];
   } else if (target) {
     const stats = getUserStats(guildId, target.id, period);
     lines = [

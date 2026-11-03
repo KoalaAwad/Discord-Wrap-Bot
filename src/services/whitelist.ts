@@ -1,49 +1,32 @@
-import type { GuildBasedChannel, GuildMember } from "discord.js";
+import type { GuildBasedChannel } from "discord.js";
 import { db } from "../db";
 
-export type WhitelistKind = "channel" | "user" | "role";
+// Admins only whitelist channels. Members opt themselves in (see privacy.ts),
+// so nobody is tracked without their own say-so.
 
-type WhitelistRow = { kind: WhitelistKind; target_id: string };
-
-const addStmt = db.prepare<[string, WhitelistKind, string, string, number]>(
+const addStmt = db.prepare<[string, string, string, number]>(
   `INSERT OR IGNORE INTO whitelist (guild_id, kind, target_id, added_by, added_at)
-   VALUES (?, ?, ?, ?, ?)`,
+   VALUES (?, 'channel', ?, ?, ?)`,
 );
-const removeStmt = db.prepare<[string, WhitelistKind, string]>(
-  "DELETE FROM whitelist WHERE guild_id = ? AND kind = ? AND target_id = ?",
+const removeStmt = db.prepare<[string, string]>(
+  "DELETE FROM whitelist WHERE guild_id = ? AND kind = 'channel' AND target_id = ?",
 );
-const listStmt = db.prepare<[string], WhitelistRow>(
-  "SELECT kind, target_id FROM whitelist WHERE guild_id = ? ORDER BY kind, added_at",
-);
-const kindIdsStmt = db.prepare<[string, WhitelistKind], { target_id: string }>(
-  "SELECT target_id FROM whitelist WHERE guild_id = ? AND kind = ?",
+const listStmt = db.prepare<[string], { target_id: string }>(
+  "SELECT target_id FROM whitelist WHERE guild_id = ? AND kind = 'channel' ORDER BY added_at",
 );
 
-/** Returns false if the entry already existed. */
-export function addToWhitelist(
-  guildId: string,
-  kind: WhitelistKind,
-  targetId: string,
-  addedBy: string,
-) {
-  return addStmt.run(guildId, kind, targetId, addedBy, Date.now()).changes > 0;
+/** Returns false if the channel was already whitelisted. */
+export function addToWhitelist(guildId: string, channelId: string, addedBy: string) {
+  return addStmt.run(guildId, channelId, addedBy, Date.now()).changes > 0;
 }
 
 /** Returns false if there was nothing to remove. */
-export function removeFromWhitelist(
-  guildId: string,
-  kind: WhitelistKind,
-  targetId: string,
-) {
-  return removeStmt.run(guildId, kind, targetId).changes > 0;
+export function removeFromWhitelist(guildId: string, channelId: string) {
+  return removeStmt.run(guildId, channelId).changes > 0;
 }
 
 export function listWhitelist(guildId: string) {
-  return listStmt.all(guildId);
-}
-
-function whitelistedIds(guildId: string, kind: WhitelistKind) {
-  return new Set(kindIdsStmt.all(guildId, kind).map((row) => row.target_id));
+  return listStmt.all(guildId).map((row) => row.target_id);
 }
 
 /**
@@ -55,15 +38,8 @@ export function isChannelWhitelisted(
   guildId: string,
   channel: GuildBasedChannel,
 ) {
-  const allowed = whitelistedIds(guildId, "channel");
+  const allowed = new Set(listWhitelist(guildId));
   const scope = [channel.id, channel.parentId];
   if (channel.isThread()) scope.push(channel.parent?.parentId ?? null);
   return scope.some((id) => id !== null && allowed.has(id));
-}
-
-/** Whitelisting @everyone (role id === guild id) opts in every member. */
-export function isMemberWhitelisted(guildId: string, member: GuildMember) {
-  if (whitelistedIds(guildId, "user").has(member.id)) return true;
-  const roles = whitelistedIds(guildId, "role");
-  return member.roles.cache.some((role) => roles.has(role.id));
 }
