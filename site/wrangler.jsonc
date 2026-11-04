@@ -1,0 +1,7 @@
+// Cloudflare Workers config: serves this folder as a static page.
+{
+  "name": "discord-wrap-bot",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "." },
+  "routes": [{ "pattern": "wrap.koala.rip", "custom_domain": true }]
+}

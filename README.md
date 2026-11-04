@@ -4,6 +4,8 @@ A self-hosted Discord bot that keeps opt-in activity stats for your server and t
 
 **Nothing is tracked without the member's own say-so.** Admins pick the channels with `/whitelist`, and each member who wants to be included runs `/optin` themselves. Message text is never read or stored, only who sent a message, where and when.
 
+Command guide: **[wrap.koala.rip](https://wrap.koala.rip)**
+
 ## Setup
 
 You need Node.js 20 or newer.
@@ -38,25 +40,35 @@ You need Node.js 20 or newer.
 
 ## Commands
 
-**For admins** (members with Manage Server):
-
-| Command | What it does |
-| --- | --- |
-| `/whitelist add\|remove\|list` | Choose which channels (or categories) can be tracked. Members are only tracked after they `/optin` themselves; admins can't opt anyone in. `list` also shows how many members opted in. |
-| `/tracking pause\|resume\|status` | Pause or resume all tracking in the server, or see what's set up. |
-| `/purge-data user\|channel` | Delete everything stored for one member or one channel. |
-| `/wrap-channel set\|clear\|show` | Post the server wrap in a channel automatically when wrap week opens. |
-| `/silent` | Mute the bot's announcements, including the wrap auto-post. |
-| `/wrap … preview:True` | Preview this year's wrap before wrap week. Only you see it. |
-
 **For everyone:**
 
-| Command | What it does |
-| --- | --- |
-| `/wrap server\|me\|member` | The year in slides: the server's, your own, or someone else's. Click through privately and share any slide to the channel. Available during wrap week; for the rest of the year it shows last year's wrap and a countdown to the next one. |
-| `/stats` | Server stats, or one member's with `user:`. Choose a `period:`, and set `public:` to post the result in the channel. |
-| `/optin` | Let the bot count your messages, reactions and voice time in whitelisted channels. Nothing about you is tracked until you do. |
-| `/optout` | Stop being tracked here and delete your data. |
+| Command | Options | What it does |
+| --- | --- | --- |
+| `/optin` | | Let the bot count your messages, reactions and voice time in whitelisted channels. Nothing about you is tracked until you do. |
+| `/optout` | | Stop being tracked here and delete your data, after a confirmation. |
+| `/stats` | `user`, `period`, `public` | Server leaderboards, or one member's numbers with `user`. `period` is Last 7 days, Last 30 days, This year or All time (default). `public:True` posts it in the channel; otherwise only you see it. |
+| `/wrap server` | `preview` | The server's year as image slides. |
+| `/wrap me` | `preview` | Your own year. |
+| `/wrap member` | `user`, `preview` | Someone else's year, if they opted in. |
+
+The wrap opens during wrap week (Dec 25–31 by default). Click through it privately and share any slide to the channel. The rest of the year it shows last year's wrap and a countdown. `preview:True` is for admins: it shows this year so far, privately, at any time.
+
+**For admins** (members with Manage Server):
+
+| Command | Options | What it does |
+| --- | --- | --- |
+| `/whitelist add` | `channel` | Count opted-in members in this channel or category (covers its threads and a voice channel's chat). |
+| `/whitelist remove` | `channel` | Stop counting there. Stored data stays until purged. |
+| `/whitelist list` | | Whitelisted channels and how many members opted in (not who). |
+| `/tracking pause\|resume` | | Stop or restart recording in the whole server. |
+| `/tracking status` | | Whether tracking is on, channel and opt-in counts. |
+| `/purge-data user` | `user` | Delete one member's stored data. Doesn't stop future tracking if they're opted in. |
+| `/purge-data channel` | `channel` | Delete one channel's or thread's stored data. |
+| `/wrap-channel set` | `channel` | Post the server wrap there once when wrap week opens. Needs Send Messages and Attach Files. |
+| `/wrap-channel clear\|show` | | Turn the auto-post off, or show the current channel. |
+| `/silent` | `enabled` | `True` mutes announcements, including the wrap post. |
+
+Admins can't opt anyone in, by name or by role.
 
 To limit who can use a command, or where, go to **Server Settings → Integrations → (the bot)**. Discord handles per-role and per-channel command permissions there.
 
