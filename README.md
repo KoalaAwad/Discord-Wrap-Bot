@@ -2,7 +2,7 @@
 
 A self-hosted Discord bot that keeps opt-in activity stats for your server and turns them into a yearly wrap: a deck of image slides covering top senders and reactors, the most reacted messages, voice time, the longest call and more. You run the bot and its SQLite database yourself; your stats aren't sent anywhere else.
 
-**Nothing is tracked without the member's own say-so.** Admins pick the channels with `/whitelist`, and each member who wants to be included runs `/optin` themselves. Message text is never read or stored, only who sent a message, where and when.
+Admins pick the channels with `/whitelist`, and members are only tracked after they run `/optin` themselves. Message text is never read or stored, only who sent a message, where and when.
 
 Command guide: **[wrap.koala.rip](https://wrap.koala.rip)**
 
