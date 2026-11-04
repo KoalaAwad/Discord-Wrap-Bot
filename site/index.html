@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discord Wrap Bot</title>
+<meta name="description" content="Commands and options for Discord Wrap Bot, a self-hosted bot that turns opt-in server activity into a yearly wrap.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070a17;
+    --panel: #0d1226;
+    --line: #1d2442;
+    --text: #ecebf3;
+    --muted: #9b9db4;
+    --accent: #8c76ff;
+    --accent-bg: #5a3fd6;
+    --gold: #e8c26a;
+    --sans: "Bricolage Grotesque", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.6 var(--sans); }
+  main { max-width: 920px; margin: 0 auto; padding: 56px 16px 80px; }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:hover { color: var(--text); }
+  h1 { font-size: clamp(40px, 8vw, 64px); line-height: 1; margin: 0 0 16px; font-weight: 800; letter-spacing: -0.02em; }
+  h2 { font-size: 28px; margin: 56px 0 14px; font-weight: 800; letter-spacing: -0.01em; }
+  p { margin: 0 0 12px; }
+  .lede { font-size: 19px; color: var(--muted); max-width: 680px; }
+  .links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+  .button { display: inline-block; padding: 10px 18px; border-radius: 8px; border: 1px solid var(--line); color: var(--text); text-decoration: none; font-weight: 700; }
+  .button.primary { background: var(--accent-bg); border-color: var(--accent-bg); }
+  .button:hover { border-color: var(--accent); color: var(--text); }
+  code { font-family: var(--mono); font-size: 0.9em; }
+  .muted { color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th { text-align: left; font-weight: 700; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; padding: 0 14px 8px 0; }
+  td { border-top: 1px solid var(--line); padding: 10px 14px 10px 0; vertical-align: top; }
+  td.c { font-family: var(--mono); white-space: nowrap; }
+  td.c a { color: var(--text); text-decoration: none; }
+  td.c a:hover { color: var(--accent); }
+  .opt { font-family: var(--mono); color: var(--accent); white-space: nowrap; }
+  .type { color: var(--muted); white-space: nowrap; }
+  .req { font: 500 12px var(--mono); color: var(--gold); }
+  .who { font: 500 12px var(--mono); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+  .who.all { color: #8fd9b0; border: 1px solid #22473a; }
+  .who.admin { color: var(--gold); border: 1px solid #4a3f22; }
+
+  .cmd { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 20px 22px; margin: 14px 0; scroll-margin-top: 16px; }
+  .cmd-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; margin-bottom: 6px; }
+  .cmd h3 { font: 500 19px/1.4 var(--mono); margin: 0; }
+  .usage { font-family: var(--mono); font-size: 14px; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; margin: 10px 0 4px; overflow-x: auto; white-space: pre; }
+  .cmd table { margin-top: 12px; }
+  .cmd .note { color: var(--muted); font-size: 15px; margin: 12px 0 0; }
+
+  footer { margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 15px; }
+
+  @media (max-width: 640px) {
+    main { padding-top: 36px; }
+    .cmd { padding: 16px; }
+    .stack, .stack tbody, .stack tr, .stack td { display: block; }
+    .stack thead { display: none; }
+    .stack tr { border-top: 1px solid var(--line); padding: 8px 0; }
+    .stack td { border: 0; padding: 2px 0; white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>Discord Wrap Bot</h1>
+  <p class="lede">A self-hosted bot that keeps activity stats for your server and turns them into a yearly wrap of image slides. Members are only tracked after they opt in themselves, and only in channels an admin whitelisted. Message text is never stored.</p>
+  <div class="links">
+    <a class="button primary" href="https://github.com/KoalaAwad/Discord-Wrap-Bot#setup">Install it</a>
+    <a class="button" href="https://github.com/KoalaAwad/Discord-Wrap-Bot">Source on GitHub</a>
+  </div>
+</header>
+
+<h2 id="commands">Commands</h2>
+<p class="muted">Admin commands need the Manage Server permission. Server owners can change who may use each command in Server Settings → Integrations.</p>
+<table class="stack">
+  <thead><tr><th>Command</th><th>Who</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td class="c"><a href="#optin">/optin</a></td><td><span class="who all">everyone</span></td><td>Start being counted in this server.</td></tr>
+    <tr><td class="c"><a href="#optout">/optout</a></td><td><span class="who all">everyone</span></td><td>Stop being counted and delete your data.</td></tr>
+    <tr><td class="c"><a href="#stats">/stats</a></td><td><span class="who all">everyone</span></td><td>Leaderboards for the server, or one member's numbers.</td></tr>
+    <tr><td class="c"><a href="#wrap">/wrap</a></td><td><span class="who all">everyone</span></td><td>The year as image slides: the server's, yours, or a member's.</td></tr>
+    <tr><td class="c"><a href="#whitelist">/whitelist</a></td><td><span class="who admin">admin</span></td><td>Choose the channels where opted-in members are counted.</td></tr>
+    <tr><td class="c"><a href="#tracking">/tracking</a></td><td><span class="who admin">admin</span></td><td>Pause or resume all tracking, or see what's set up.</td></tr>
+    <tr><td class="c"><a href="#purge-data">/purge-data</a></td><td><span class="who admin">admin</span></td><td>Delete stored data for one member or one channel.</td></tr>
+    <tr><td class="c"><a href="#wrap-channel">/wrap-channel</a></td><td><span class="who admin">admin</span></td><td>Post the server wrap in a channel when wrap week opens.</td></tr>
+    <tr><td class="c"><a href="#silent">/silent</a></td><td><span class="who admin">admin</span></td><td>Mute or unmute the bot's announcements.</td></tr>
+  </tbody>
+</table>
+
+<h2>Details</h2>
+
+<section class="cmd" id="optin">
+  <div class="cmd-head"><h3>/optin</h3><span class="who all">everyone</span></div>
+  <div class="usage">/optin</div>
+  <p>Lets the bot count your messages, reactions and time in voice in this server's whitelisted channels. Nothing about you is recorded before this. The reply lists the channels where you're counted.</p>
+</section>
+
+<section class="cmd" id="optout">
+  <div class="cmd-head"><h3>/optout</h3><span class="who all">everyone</span></div>
+  <div class="usage">/optout</div>
+  <p>Stops tracking you and, after you confirm, deletes your messages, reactions and voice time in this server. Deleted history can't be brought back if you opt in again.</p>
+  <p class="note">Reactions others left on your messages stay counted for them, but no longer count as received by you.</p>
+</section>
+
+<section class="cmd" id="stats">
+  <div class="cmd-head"><h3>/stats</h3><span class="who all">everyone</span></div>
+  <div class="usage">/stats [user] [period] [public]</div>
+  <p>Without <code>user</code>: top senders, busiest channels, top reactors, most reacted to, top emoji, the most reacted message, most time in voice, the longest call and the busiest voice moment. With <code>user</code>: that member's messages, reactions given and received, favourite emoji, most active channel and voice time.</p>
+  <table class="stack">
+    <thead><tr><th>Option</th><th>Type</th><th>Default</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="opt">user</td><td class="type">member</td><td class="type">none</td><td>Show this member's stats instead of the server's.</td></tr>
+      <tr><td class="opt">period</td><td class="type">choice</td><td class="type">All time</td><td>Last 7 days, Last 30 days, This year or All time.</td></tr>
+      <tr><td class="opt">public</td><td class="type">true / false</td><td class="type">false</td><td>True posts the result in the channel. False shows it only to you.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="cmd" id="wrap">
+  <div class="cmd-head"><h3>/wrap</h3><span class="who all">everyone</span></div>
+  <div class="usage">/wrap server [preview]
+/wrap me [preview]
+/wrap member &lt;user&gt; [preview]</div>
+  <p>The year as image slides you click through privately with Back and Next. <b>Share this slide</b> posts the current slide in the channel, with a button others can use to open the full wrap.</p>
+  <table class="stack">
+    <thead><tr><th>Subcommand</th><th>Slides</th></tr></thead>
+    <tbody>
+      <tr><td class="opt">server</td><td>Year in numbers, the regulars, when it was busiest, hall of fame, voice.</td></tr>
+      <tr><td class="opt">me</td><td>Your numbers and rank, your biggest fan, who you react to most, favourite emoji, longest call, call buddy.</td></tr>
+      <tr><td class="opt">member</td><td>The same as <code>me</code>, for someone else who opted in.</td></tr>
+    </tbody>
+  </table>
+  <table class="stack">
+    <thead><tr><th>Option</th><th>Type</th><th>Default</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="opt">user <span class="req">required</span></td><td class="type">member</td><td class="type"></td><td>Whose wrap to show. Only for <code>member</code>.</td></tr>
+      <tr><td class="opt">preview</td><td class="type">true / false</td><td class="type">false</td><td>Admins only. Shows this year so far at any time of year, only to you, and it can't be shared.</td></tr>
+    </tbody>
+  </table>
+  <p class="note">The wrap opens during wrap week, December 25 to 31 by default (the host can change it). The rest of the year, <code>/wrap</code> shows last year's wrap and a countdown to the next one.</p>
+</section>
+
+<section class="cmd" id="whitelist">
+  <div class="cmd-head"><h3>/whitelist</h3><span class="who admin">admin</span></div>
+  <div class="usage">/whitelist add &lt;channel&gt;
+/whitelist remove &lt;channel&gt;
+/whitelist list</div>
+  <table class="stack">
+    <thead><tr><th>Subcommand</th><th>Option</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="opt">add</td><td class="type">channel <span class="req">required</span></td><td>Count opted-in members in this channel or category. A category covers its channels and threads; a voice channel covers its text chat.</td></tr>
+      <tr><td class="opt">remove</td><td class="type">channel <span class="req">required</span></td><td>Stop counting there. Data already stored stays until you <a href="#purge-data">purge</a> it.</td></tr>
+      <tr><td class="opt">list</td><td class="type"></td><td>The whitelisted channels and how many members opted in, not who.</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Admins choose channels only. There's no way to opt someone else in, by name or by role.</p>
+</section>
+
+<section class="cmd" id="tracking">
+  <div class="cmd-head"><h3>/tracking</h3><span class="who admin">admin</span></div>
+  <div class="usage">/tracking pause
+/tracking resume
+/tracking status</div>
+  <table class="stack">
+    <thead><tr><th>Subcommand</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="opt">pause</td><td>Stop recording anything new in the whole server. Stored stats stay.</td></tr>
+      <tr><td class="opt">resume</td><td>Start recording again.</td></tr>
+      <tr><td class="opt">status</td><td>Whether tracking is on, how many channels are whitelisted and how many members opted in.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="cmd" id="purge-data">
+  <div class="cmd-head"><h3>/purge-data</h3><span class="who admin">admin</span></div>
+  <div class="usage">/purge-data user &lt;user&gt;
+/purge-data channel &lt;channel&gt;</div>
+  <p>Deletes stored stats after a confirmation. It doesn't change who is tracked from now on.</p>
+  <table class="stack">
+    <thead><tr><th>Subcommand</th><th>Option</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="opt">user</td><td class="type">member <span class="req">required</span></td><td>Delete everything stored for this member. If they're opted in, new activity keeps being counted.</td></tr>
+      <tr><td class="opt">channel</td><td class="type">channel or thread <span class="req">required</span></td><td>Delete everything from this channel. Its threads are purged separately.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="cmd" id="wrap-channel">
+  <div class="cmd-head"><h3>/wrap-channel</h3><span class="who admin">admin</span></div>
+  <div class="usage">/wrap-channel set &lt;channel&gt;
+/wrap-channel clear
+/wrap-channel show</div>
+  <table class="stack">
+    <thead><tr><th>Subcommand</th><th>Option</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="opt">set</td><td class="type">text or announcement channel <span class="req">required</span></td><td>Post the first slide of the server wrap here once, when wrap week opens. The bot checks it can send messages and attach files there.</td></tr>
+      <tr><td class="opt">clear</td><td class="type"></td><td>Don't post the wrap automatically.</td></tr>
+      <tr><td class="opt">show</td><td class="type"></td><td>Show the current wrap channel.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="cmd" id="silent">
+  <div class="cmd-head"><h3>/silent</h3><span class="who admin">admin</span></div>
+  <div class="usage">/silent &lt;enabled&gt;</div>
+  <table class="stack">
+    <thead><tr><th>Option</th><th>Type</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="opt">enabled <span class="req">required</span></td><td class="type">true / false</td><td>True mutes the bot's announcements, including the wrap post. False turns them back on.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<h2 id="stored">What's stored</h2>
+<table class="stack">
+  <thead><tr><th>Data</th><th>Fields</th></tr></thead>
+  <tbody>
+    <tr><td><b>Messages</b></td><td>Message ID, channel, author and time. Never the text.</td></tr>
+    <tr><td><b>Reactions</b></td><td>Who reacted, the emoji, the message, and whose message it was.</td></tr>
+    <tr><td><b>Voice</b></td><td>Who was in which voice channel, from when to when. The AFK channel isn't counted.</td></tr>
+    <tr><td><b>Settings</b></td><td>Whitelisted channels, who opted in, paused or not, the wrap channel.</td></tr>
+  </tbody>
+</table>
+<p class="muted" style="margin-top:14px">Each host runs their own bot and database. Deleting a message or removing a reaction deletes it from the database too, and removing the bot from a server deletes that server's data. Bots are never tracked.</p>
+
+<footer>
+  Open source on <a href="https://github.com/KoalaAwad/Discord-Wrap-Bot">GitHub</a>. Setup steps are in the <a href="https://github.com/KoalaAwad/Discord-Wrap-Bot#setup">README</a>.
+</footer>
+
+</main>
+</body>
+</html>
